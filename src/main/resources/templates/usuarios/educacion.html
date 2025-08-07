@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Actividad Educativa - Reciclaje</title>
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+	rel="stylesheet">
+<style>
+body {
+	background-color: #f4f6f9;
+	font-family: Arial, sans-serif;
+}
+
+.card {
+	border-radius: 15px;
+	transition: transform 0.2s;
+}
+
+.card:hover {
+	transform: translateY(-3px);
+}
+
+.resultado {
+	margin-top: 10px;
+	font-weight: bold;
+}
+
+.resultado.correcto {
+	color: #198754;
+}
+
+.resultado.incorrecto {
+	color: #dc3545;
+}
+
+.resultado.advertencia {
+	color: #ffc107;
+}
+</style>
+</head>
+<body>
+
+	<div class="container mt-5">
+		<h2 class="text-center mb-4">📘 Actividad Educativa: ¿Cuánto
+			sabes sobre reciclaje?</h2>
+
+		<p th:text="'Preguntas encontradas: ' + ${preguntas.size()}"></p>
+
+		<div class="row" th:each="pregunta, iter : ${preguntas}">
+			<div class="col-md-6 col-lg-4 mb-4">
+				<div class="card shadow-sm">
+					<div class="card-body">
+						<h5 class="card-title text-primary"
+							th:text="'Pregunta ' + ${iter.index + 1}"></h5>
+						<p class="card-text fw-semibold" th:text="${pregunta.pregunta}"></p>
+
+						<form th:id="'form_' + ${pregunta.id}">
+							<div class="form-check"
+								th:each="opcion, idx : ${pregunta.opciones}">
+								<input class="form-check-input" type="radio"
+									th:name="'respuesta_' + ${pregunta.id}"
+									th:id="'op_' + ${pregunta.id} + '_' + ${idx.index}"
+									th:value="${opcion}"> <label class="form-check-label"
+									th:for="'op_' + ${pregunta.id} + '_' + ${idx.index}"
+									th:text="${opcion}"></label>
+							</div>
+
+							<button type="button" class="btn btn-success btn-sm mt-3 w-100"
+								th:attr="data-id=${pregunta.id}, data-correcta=${pregunta.respuestaCorrecta}"
+								onclick="validarRespuesta(this)">Responder</button>
+							<div th:id="'resultado_' + ${pregunta.id}" class="resultado"></div>
+						</form>
+					</div>
+					<div class="mt-4 text-center">
+						<a th:href="@{/usuarios/home}" class="btn btn-outline-secondary">←
+							Volver al Inicio</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+function validarRespuesta(button) {
+    const id = button.getAttribute('data-id');
+    const respuestaCorrecta = button.getAttribute('data-correcta');
+
+    const radios = document.getElementsByName('respuesta_' + id);
+    let seleccion = null;
+    for (const radio of radios) {
+        if (radio.checked) {
+            seleccion = radio.value;
+            break;
+        }
+    }
+
+    const resultado = document.getElementById('resultado_' + id);
+    if (!seleccion) {
+        resultado.innerHTML = "⚠️ <span class='advertencia'>Selecciona una opción</span>";
+        resultado.className = 'resultado advertencia';
+    } else if (seleccion === respuestaCorrecta) {
+        resultado.innerHTML = "✅ <span class='correcto'>¡Correcto!</span>";
+        resultado.className = 'resultado correcto';
+    } else {
+        resultado.innerHTML = "❌ <span class='incorrecto'>Incorrecto. La respuesta correcta es: <strong>" + respuestaCorrecta + "</strong></span>";
+        resultado.className = 'resultado incorrecto';
+    }
+}
+</script>
+
+</body>
+</html>

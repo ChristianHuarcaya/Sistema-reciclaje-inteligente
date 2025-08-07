@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Reciclaje</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map { height: 300px; border-radius: 10px; margin-top: 20px; display: none; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">🌱 Registro de Reciclaje</h2>
+
+    <div th:if="${mensaje}" class="alert alert-success" th:text="${mensaje}"></div>
+
+    <div class="mb-3">
+        <label for="filtroEstado" class="form-label">🔍 Filtrar estaciones por estado</label>
+        <select id="filtroEstado" class="form-select">
+            <option value="">Todas</option>
+            <option value="ACTIVO">Solo activas</option>
+            <option value="INACTIVO">Solo inactivas</option>
+        </select>
+    </div>
+
+    <form th:action="@{/reciclaje/registrar}" method="post">
+    
+    <!-- 🔒 CSRF token obligatorio -->
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    
+        <div class="mb-3">
+            <label for="tipoMaterial" class="form-label">♻️ Tipo de Material</label>
+            <input type="text" class="form-control" id="tipoMaterial" name="tipo" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="pesoKg" class="form-label">⚖️ Peso (kg)</label>
+            <input type="number" step="0.01" class="form-control" id="pesoKg" name="peso" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="estacionId" class="form-label">📍 Estación</label>
+            <select class="form-select" id="estacionId" name="estacionId" required>
+                <option value="">Selecciona una estación</option>
+                <option th:each="est : ${estaciones}"
+                        th:value="${est.id}"
+                        th:text="${est.nombre}"
+                        th:attr="data-ubicacion=${est.ubicacion}, 
+                                 data-estado=${est.estado}, 
+                                 data-lat=${est.latitud}, 
+                                 data-lng=${est.longitud}">
+                </option>
+            </select>
+        </div>
+
+        <div id="infoEstacion" class="mt-3 d-none fade-in">
+            <p><strong>📌 Ubicación:</strong> <span id="ubicacion"></span></p>
+            <p><strong>🔋 Estado:</strong> <span id="estado" class="fw-bold"></span></p>
+        </div>
+
+        <div id="map" class="fade-in"></div>
+
+        <div class="text-center mt-4">
+            <button type="submit" class="btn btn-success px-4">Registrar</button>
+            <a th:href="@{/usuarios/home}" class="btn btn-secondary ms-2">← Volver</a>
+        </div>
+    </form>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    const estacionSelect = document.getElementById('estacionId');
+    const infoEstacion = document.getElementById('infoEstacion');
+    const ubicacionSpan = document.getElementById('ubicacion');
+    const estadoSpan = document.getElementById('estado');
+    const mapaDiv = document.getElementById('map');
+    let map, marker;
+
+    estacionSelect.addEventListener('change', function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const ubicacion = selectedOption.getAttribute('data-ubicacion');
+        const estado = selectedOption.getAttribute('data-estado');
+        const lat = selectedOption.getAttribute('data-lat');
+        const lng = selectedOption.getAttribute('data-lng');
+
+        if (ubicacion && estado && lat && lng) {
+            infoEstacion.classList.remove('d-none');
+            ubicacionSpan.textContent = ubicacion;
+            estadoSpan.textContent = estado;
+
+            mapaDiv.style.display = 'block';
+
+            if (!map) {
+                map = L.map('map').setView([lat, lng], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                }).addTo(map);
+                marker = L.marker([lat, lng]).addTo(map);
+            } else {
+                map.setView([lat, lng], 15);
+                marker.setLatLng([lat, lng]);
+            }
+        } else {
+            infoEstacion.classList.add('d-none');
+            mapaDiv.style.display = 'none';
+        }
+    });
+
+    document.getElementById('filtroEstado').addEventListener('change', function () {
+        const estadoFiltro = this.value.toUpperCase();
+        const options = estacionSelect.options;
+        for (let i = 1; i < options.length; i++) {
+            const estado = options[i].getAttribute('data-estado');
+            options[i].style.display = (estadoFiltro === '' || estado === estadoFiltro) ? '' : 'none';
+        }
+    });
+</script>
+
+</body>
+</html>
+
+
+

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Historial de Reciclaje</title>
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body style="background-color: #f4f6f9;">
+
+	<div class="container mt-5">
+		<h2 class="mb-4 text-center text-success">♻️📊 Historial de
+			Reciclaje</h2>
+
+		<div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+		<div th:if="${reciclajes.size() == 0}">
+			<p class="text-center text-muted">No tienes registros de
+				reciclaje aún.</p>
+		</div>
+
+		<div th:if="${reciclajes.size() > 0}">
+			<table class="table table-hover shadow-sm rounded">
+				<thead class="table-success">
+					<tr>
+						<th>#</th>
+						<th>♻️ Tipo de Material</th>
+						<th>⚖️ Peso (kg)</th>
+						<th>📍 Estación</th>
+						<th>🗓 Fecha</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="reciclaje, iter : ${reciclajes}">
+						<td th:text="${iter.index + 1}"></td>
+						<td th:text="${reciclaje.tipoMaterial}"></td>
+						<td th:text="${reciclaje.peso}"></td>
+						<td th:text="${reciclaje.estacion.nombre}"></td>
+						<td
+							th:text="${#temporals.format(reciclaje.fecha, 'dd/MM/yyyy HH:mm')}"></td>
+					</tr>
+				</tbody>
+			</table>
+			<div class="mt-4 text-end">
+     <strong>Total Reciclado: </strong> <span th:text="${totalKilos}">0</span> Kg
+    </div>
+			
+			
+		</div>
+
+		<div class="text-center mt-4">
+			<a th:href="@{/usuarios/home}" class="btn btn-outline-primary">←
+				Volver al Dashboard</a>
+		</div>
+	</div>
+
+</body>
+</html>
